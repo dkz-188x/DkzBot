@@ -1,0 +1,14 @@
+{
+  "name": "DkzBot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@adiwajshing/baileys": "^4.5.0",
+    "ytdl-core": "^4.11.0",
+    "node-fetch": "^2.6.7",
+    "fs-extra": "^11.1.1"
+  }
+}
