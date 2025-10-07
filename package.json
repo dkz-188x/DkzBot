@@ -1,0 +1,17 @@
+{
+  "name": "dkzbot",
+  "version": "1.0.0",
+  "description": "Bot WhatsApp Termux DkzBot",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "DkZ",
+  "license": "MIT",
+  "dependencies": {
+    "@adiwajshing/baileys": "^5.0.0",
+    "mathjs": "^11.8.0",
+    "node-fetch": "^3.4.0"
+  }
+}￼Enter
