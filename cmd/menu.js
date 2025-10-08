@@ -1,3 +1,4 @@
+// menu.js
 export default [
   {
     name: "menu",
