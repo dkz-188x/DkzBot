@@ -11,7 +11,7 @@ import readline from "readline";
 import { Boom } from "@hapi/boom";
 import { fileURLToPath } from "url";
 import path from "path";
-import menu from "./menu.js";
+import { menuText } from "./menu.js";
 
 const rl = readline.createInterface({
   input: process.stdin,
