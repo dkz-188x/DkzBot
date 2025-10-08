@@ -1,13 +1,6 @@
 // menu.js
-const menu = [
-  {
-    name: "menu",
-    alias: ["help"],
-    desc: "Menampilkan semua menu bot",
-    run: async (m, { conn }) => {
-      let user = m.pushName || "User";
-      let teks = `
-─Hai, ${user}👋
+export const menuText = `
+─Hai, nama user👋
 
 ╭──── 「 *👤USER INFO* 」
 │
@@ -73,9 +66,3 @@ const menu = [
 ╰────────────────
 ® = Hanya admin yg bisa menggunakan fitur ini!
 `;
-      await conn.sendMessage(m.chat, { text: teks });
-    },
-  },
-];
-
-export default menu;
