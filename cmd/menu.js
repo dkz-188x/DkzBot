@@ -1,10 +1,10 @@
-module.exports = [
+export default [
   {
     name: "menu",
     alias: ["help"],
     desc: "Menampilkan semua menu bot",
     run: async (m, { conn }) => {
-      let user = m.pushName || "User"
+      let user = m.pushName || "User";
       let teks = `
 ─Hai, ${user}👋
 
@@ -71,5 +71,8 @@ module.exports = [
 │    • .linkgc ®
 ╰────────────────
 ® = Hanya admin yg bisa menggunakan fitur ini!
-`
-      await conn.sendMessage(m.chat, { text:
+`;
+      await conn.sendMessage(m.chat, { text: teks });
+    },
+  },
+];
