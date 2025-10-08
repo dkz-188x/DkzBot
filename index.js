@@ -1,14 +1,14 @@
-const { default: makeWASocket, fetchLatestBaileysVersion, DisconnectReason, downloadContentFromMessage } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, fetchLatestBaileysVersion, DisconnectReason } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const readline = require('readline');
 const { imageToWebp, writeExifImg, writeExifVid, getBuffer } = require('./library/webp');
+const settings = require('./settings.js');
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (number) => {
     rl.close();
 
-    // ===== Load session jika ada =====
     const SESSION_FILE = './DKZZBOT1.json';
     let session = {};
     if (fs.existsSync(SESSION_FILE)) session = JSON.parse(fs.readFileSync(SESSION_FILE));
@@ -35,10 +35,8 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
         }
     });
 
-    // Simpan session
     sock.ev.on('creds.update', state => fs.writeFileSync(SESSION_FILE, JSON.stringify(state, null, 2)));
 
-    // ===== Command Handler =====
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const m = messages[0];
         if (!m.message || m.key.fromMe) return;
@@ -49,25 +47,40 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
         const [cmd, ...args] = text.slice(1).split(' ');
         const arg = args.join(' ');
 
-        // ===== OWNER =====
-        const ownerCmds = ['addprem','delprem','resetlimit','ban','undban','self','public','joingc','out','setthumbnail'];
+        // ===== OWNER COMMANDS =====
+        const ownerCmds = ['owner','addprem','delprem','resetlimit','ban','undban','self','public','joingc','out','setthumbnail'];
         if(ownerCmds.includes(cmd)){
-            const responses = {
-                addprem: '✅ Nomor berhasil ditambahkan ke premium!',
-                delprem: '✅ Nomor berhasil dihapus dari premium!',
-                resetlimit: '✅ Limit user berhasil di-reset!',
-                ban: '⛔ User berhasil dibanned!',
-                undban: '✅ User berhasil di-unban!',
-                self: '🔒 Mode diubah ke Self!',
-                public: '🌐 Mode diubah ke Public!',
-                joingc: '✅ Berhasil join group!',
-                out: '🚪 Keluar dari group!',
-                setthumbnail: '🖼 Thumbnail berhasil diubah!'
-            };
-            return await sock.sendMessage(m.key.remoteJid, { text: responses[cmd] }, { quoted: m });
+            switch(cmd){
+                case 'owner':
+                    await sock.sendMessage(m.key.remoteJid, {
+                        contacts: [{ 
+                            displayName: settings.global.ownerName, 
+                            vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${settings.global.ownerName}\nTEL;type=CELL;waid=${settings.global.ownerNumber}:${settings.global.ownerNumber}\nEND:VCARD` 
+                        }]
+                    }, { quoted: m });
+                    break;
+                case 'setthumbnail':
+                    if(!arg) return await sock.sendMessage(m.key.remoteJid, { text: '❌ Kirim link thumbnail yang valid!' }, { quoted: m });
+                    settings.global.thumbnail = arg;
+                    await sock.sendMessage(m.key.remoteJid, { text: `🖼 Thumbnail berhasil diubah menjadi: ${arg}` }, { quoted: m });
+                    break;
+                default:
+                    const responses = {
+                        addprem: '✅ Nomor berhasil ditambahkan ke premium!',
+                        delprem: '✅ Nomor berhasil dihapus dari premium!',
+                        resetlimit: '✅ Limit user berhasil di-reset!',
+                        ban: '⛔ User berhasil dibanned!',
+                        undban: '✅ User berhasil di-unban!',
+                        self: '🔒 Mode diubah ke Self!',
+                        public: '🌐 Mode diubah ke Public!',
+                        joingc: '✅ Berhasil join group!',
+                        out: '🚪 Keluar dari group!'
+                    };
+                    await sock.sendMessage(m.key.remoteJid, { text: responses[cmd] }, { quoted: m });
+            }
         }
 
-        // ===== FUN =====
+        // ===== FUN COMMANDS =====
         const funCmds = ['brat','bratvid','tebakkata','qc1','qc2','s','smeme','cekprofile'];
         if(funCmds.includes(cmd)){
             switch(cmd){
@@ -90,7 +103,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
             }
         }
 
-        // ===== RPG =====
+        // ===== RPG COMMANDS =====
         const rpgCmds = ['rvo','me','limit','ceklimit'];
         if(rpgCmds.includes(cmd)){
             const texts = {
@@ -99,17 +112,17 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
                 limit: '🔢 Limit user saat ini: 10',
                 ceklimit: '🔍 Limit user dicek!'
             };
-            return await sock.sendMessage(m.key.remoteJid, { text: texts[cmd] }, { quoted: m });
+            await sock.sendMessage(m.key.remoteJid, { text: texts[cmd] }, { quoted: m });
         }
 
         // ===== DOWNLOADER =====
         const dlCmds = ['yt','tymp3','tt','ttmp3','tovid','tomp3'];
         if(dlCmds.includes(cmd)){
-            return await sock.sendMessage(m.key.remoteJid, { text: `⏬ Downloading ${cmd}: ${arg}` }, { quoted: m });
+            await sock.sendMessage(m.key.remoteJid, { text: `⏬ Downloading ${cmd}: ${arg}` }, { quoted: m });
         }
 
-        // ===== GROUP (Bot harus admin) =====
-        const groupCmds = ['tagall','hidetag','kick','add','open','close','getpp','listonline','totalchat','afk','antilink','linkgc'];
+        // ===== GROUP COMMANDS (Bot harus admin) =====
+        const groupCmds = ['tagall','hidetag','kick','add','open','close','addadmin','undadmin','getpp','listonline','totalchat','afk','antilink','linkgc'];
         if(groupCmds.includes(cmd)){
             const isGroup = m.key.remoteJid.endsWith('@g.us');
             if(!isGroup) return;
@@ -122,7 +135,19 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
                 return await sock.sendMessage(m.key.remoteJid, { text: '⚠️ *Bot harus dijadikan admin untuk mengaktifkan fitur ini!*' }, { quoted: m });
             }
 
-            return await sock.sendMessage(m.key.remoteJid, { text: `✅ Fitur ${cmd} dijalankan!` }, { quoted: m });
+            // ===== ADMIN GROUP COMMANDS =====
+            switch(cmd){
+                case 'addadmin':
+                    await sock.promoteParticipants(m.key.remoteJid, [m.key.participant || m.participant]);
+                    await sock.sendMessage(m.key.remoteJid, { text: '✅ User dijadikan admin!' }, { quoted: m });
+                    break;
+                case 'undadmin':
+                    await sock.demoteParticipants(m.key.remoteJid, [m.key.participant || m.participant]);
+                    await sock.sendMessage(m.key.remoteJid, { text: '✅ User dihapus dari admin!' }, { quoted: m });
+                    break;
+                default:
+                    await sock.sendMessage(m.key.remoteJid, { text: `✅ Fitur ${cmd} dijalankan!` }, { quoted: m });
+            }
         }
     });
 });
