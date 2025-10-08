@@ -1,11 +1,11 @@
 module.exports = {
     global: {
         mode: { public: true }, // true = public, false = self
-        ownerNumber: '6283119404224', // ganti dengan nomor WA owner
-        ownerName: 'DkzBot1',    // nama owner
-        premiumUsers: [],
-        userLimits: {},
-        thumbnail: 'https://i.ibb.co/album/default.png' // thumbnail default
+        ownerNumber: '6283119404224', // nomor WA owner
+        ownerName: 'Dkz🗿', // nama owner untuk .owner
+        premiumUsers: ['9999'],
+        userLimits: { default: 20 },
+        botThumbnail: null // nanti bisa diubah via .setthumbnail
     },
     botInfo: {
         name: 'DkzBot',
