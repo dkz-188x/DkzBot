@@ -9,7 +9,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
     rl.close();
 
     // ===== Load session jika ada =====
-    const SESSION_FILE = './session.json';
+    const SESSION_FILE = './DKZZBOT1.json';
     let session = {};
     if (fs.existsSync(SESSION_FILE)) session = JSON.parse(fs.readFileSync(SESSION_FILE));
 
@@ -29,7 +29,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
                 console.log('⚠️ Koneksi terputus, reconnecting...');
                 process.exit();
             } else {
-                console.log('⚠️ Terlogout, hapus session.json lalu jalankan lagi.');
+                console.log('⚠️ Terlogout, hapus DKZZBOT1.json lalu jalankan lagi.');
                 process.exit();
             }
         }
