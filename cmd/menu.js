@@ -1,5 +1,5 @@
 // menu.js
-export default [
+const menu = [
   {
     name: "menu",
     alias: ["help"],
@@ -77,3 +77,5 @@ export default [
     },
   },
 ];
+
+export default menu;
