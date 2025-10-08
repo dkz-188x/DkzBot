@@ -1,11 +1,11 @@
 module.exports = {
     global: {
-        mode: { public: true },           // true = public, false = self
-        ownerName: 'Dkz',                 // nama owner
-        ownerNumber: '6283119404224',        // nomor WA owner
-        premiumUsers: [9999],             // nomor premium
-        userLimits: { default: 20 },      // limit user default
-        botThumbnail: ''                  // thumbnail bot, bisa diubah pakai .setthumbnail <link>
+        mode: { public: true },       // true = public, false = self
+        ownerNumber: '6283119404224',    // ganti dengan nomor WA owner
+        ownerName: 'Dkz🗿',       // ganti dengan nama owner
+        premiumUsers: [20],             // nomor premium
+        userLimits: {20},               // limit user
+        botThumbnail: null            // thumbnail bot, bisa diganti via .addthumbnail
     },
     botInfo: {
         name: 'DkzBot',
