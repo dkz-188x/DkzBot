@@ -18,11 +18,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
 
     sock.ev.on('connection.update', update => {
         const { connection, qr, lastDisconnect } = update;
-        if (qr) {
-            const qrcode = require('qrcode-terminal');
-            qrcode.generate(qr, { small: true });
-            console.log('📱 Scan QR code ini untuk login!');
-        }
+        if (qr) require('qrcode-terminal').generate(qr, { small: true });
         if (connection === 'open') console.log('✅ Bot sudah login!');
         if (connection === 'close') {
             if ((lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut) {
@@ -40,7 +36,6 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const m = messages[0];
         if (!m.message || m.key.fromMe) return;
-
         const text = m.message.conversation || m.message.extendedTextMessage?.text || '';
         if (!text.startsWith('.')) return;
 
@@ -61,7 +56,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
                     break;
                 case 'setthumbnail':
                     if(!arg) return await sock.sendMessage(m.key.remoteJid, { text: '❌ Kirim link thumbnail yang valid!' }, { quoted: m });
-                    settings.global.thumbnail = arg;
+                    settings.global.botThumbnail = arg;
                     await sock.sendMessage(m.key.remoteJid, { text: `🖼 Thumbnail berhasil diubah menjadi: ${arg}` }, { quoted: m });
                     break;
                 default:
@@ -115,7 +110,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
             await sock.sendMessage(m.key.remoteJid, { text: texts[cmd] }, { quoted: m });
         }
 
-        // ===== DOWNLOADER =====
+        // ===== DOWNLOADER COMMANDS =====
         const dlCmds = ['yt','tymp3','tt','ttmp3','tovid','tomp3'];
         if(dlCmds.includes(cmd)){
             await sock.sendMessage(m.key.remoteJid, { text: `⏬ Downloading ${cmd}: ${arg}` }, { quoted: m });
@@ -135,7 +130,6 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
                 return await sock.sendMessage(m.key.remoteJid, { text: '⚠️ *Bot harus dijadikan admin untuk mengaktifkan fitur ini!*' }, { quoted: m });
             }
 
-            // ===== ADMIN GROUP COMMANDS =====
             switch(cmd){
                 case 'addadmin':
                     await sock.promoteParticipants(m.key.remoteJid, [m.key.participant || m.participant]);
