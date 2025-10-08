@@ -1,18 +1,23 @@
-const { default: makeWASocket, fetchLatestBaileysVersion, DisconnectReason, useSingleFileAuthState } = require('@whiskeysockets/baileys');
+const { default: makeWASocket, fetchLatestBaileysVersion, DisconnectReason } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const readline = require('readline');
-const { imageToWebp, writeExifImg, writeExifVid, getBuffer } = require('./library/webp');
+const { getBuffer } = require('./library/webp');
 const settings = require('./settings.js');
-
-const { state, saveState } = useSingleFileAuthState('./DKZZBOT1.json');
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
 rl.question('📨 Masukkan kode pairing (DKZZBOT1): ', async (code) => {
     rl.close();
-    const { version } = await fetchLatestBaileysVersion();
-    const sock = makeWASocket({ version, auth: state });
 
+    // File session sesuai kode pairing
+    const SESSION_FILE = './DKZZBOT1.json';
+    let session = {};
+    if (fs.existsSync(SESSION_FILE)) session = JSON.parse(fs.readFileSync(SESSION_FILE));
+
+    const { version } = await fetchLatestBaileysVersion();
+    const sock = makeWASocket({ version, auth: session });
+
+    // Connection update
     sock.ev.on('connection.update', update => {
         const { connection, lastDisconnect } = update;
         if (connection === 'open') console.log('✅ Bot sudah login!');
@@ -27,25 +32,28 @@ rl.question('📨 Masukkan kode pairing (DKZZBOT1): ', async (code) => {
         }
     });
 
-    sock.ev.on('creds.update', saveState);
+    // Simpan session
+    sock.ev.on('creds.update', state => fs.writeFileSync(SESSION_FILE, JSON.stringify(state, null, 2)));
 
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const m = messages[0];
         if (!m.message || m.key.fromMe) return;
+
         const text = m.message.conversation || m.message.extendedTextMessage?.text || '';
         if (!text.startsWith('.')) return;
+
         const [cmd, ...args] = text.slice(1).split(' ');
         const arg = args.join(' ');
 
         // ===== OWNER =====
         const ownerCmds = ['owner','addprem','delprem','resetlimit','ban','undban','self','public','joingc','out','addthumbnail'];
-        if(ownerCmds.includes(cmd)){
+        if (ownerCmds.includes(cmd)) {
             switch(cmd){
                 case 'owner':
                     await sock.sendMessage(m.key.remoteJid, {
                         contacts: [{ 
-                            displayName: settings.global.ownerName, 
-                            vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${settings.global.ownerName}\nTEL;type=CELL;waid=${settings.global.ownerNumber}:${settings.global.ownerNumber}\nEND:VCARD` 
+                            displayName: settings.global.ownerName,
+                            vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${settings.global.ownerName}\nTEL;type=CELL;waid=${settings.global.ownerNumber}:${settings.global.ownerNumber}\nEND:VCARD`
                         }]
                     }, { quoted: m });
                     break;
@@ -73,7 +81,7 @@ rl.question('📨 Masukkan kode pairing (DKZZBOT1): ', async (code) => {
 
         // ===== FUN =====
         const funCmds = ['brat','bratvid','tebakkata','qc1','qc2','s','smeme','cekprofile'];
-        if(funCmds.includes(cmd)){
+        if (funCmds.includes(cmd)) {
             switch(cmd){
                 case 'brat':
                     await sock.sendImageAsSticker(m.key.remoteJid, await getBuffer('https://i.ibb.co/album/brat.png'), m, { packname: "Brat", author: "Bot" });
@@ -88,28 +96,22 @@ rl.question('📨 Masukkan kode pairing (DKZZBOT1): ', async (code) => {
 
         // ===== RPG =====
         const rpgCmds = ['rvo','me','limit','ceklimit'];
-        if(rpgCmds.includes(cmd)){
-            await sock.sendMessage(m.key.remoteJid, { text: `Fitur ${cmd} dijalankan!` }, { quoted: m });
-        }
+        if(rpgCmds.includes(cmd)) await sock.sendMessage(m.key.remoteJid, { text: `Fitur ${cmd} dijalankan!` }, { quoted: m });
 
         // ===== DOWNLOADER =====
         const dlCmds = ['yt','tymp3','tt','ttmp3','tovid','tomp3'];
-        if(dlCmds.includes(cmd)){
-            await sock.sendMessage(m.key.remoteJid, { text: `⏬ Downloading ${cmd}: ${arg}` }, { quoted: m });
-        }
+        if(dlCmds.includes(cmd)) await sock.sendMessage(m.key.remoteJid, { text: `⏬ Downloading ${cmd}: ${arg}` }, { quoted: m });
 
         // ===== GROUP =====
         const groupCmds = ['tagall','hidetag','kick','add','open','close','addadmin','undadmin','getpp','listonline','totalchat','afk','antilink','linkgc'];
-        if(groupCmds.includes(cmd)){
+        if(groupCmds.includes(cmd)) {
             const isGroup = m.key.remoteJid.endsWith('@g.us');
             if(!isGroup) return;
 
             const metadata = await sock.groupMetadata(m.key.remoteJid);
             const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
             const botIsAdmin = metadata.participants.some(u => u.id === botNumber && u.admin);
-            if(!botIsAdmin){
-                return await sock.sendMessage(m.key.remoteJid, { text: '⚠️ Bot harus dijadikan admin!' }, { quoted: m });
-            }
+            if(!botIsAdmin) return await sock.sendMessage(m.key.remoteJid, { text: '⚠️ Bot harus dijadikan admin!' }, { quoted: m });
 
             switch(cmd){
                 case 'addadmin':
