@@ -1,3 +1,4 @@
+// index.js
 import {
   makeWASocket,
   useMultiFileAuthState,
@@ -6,12 +7,11 @@ import {
 import pino from "pino";
 import chalk from "chalk";
 import fs from "fs";
-import axios from "axios";
 import readline from "readline";
 import { Boom } from "@hapi/boom";
 import { fileURLToPath } from "url";
 import path from "path";
-import menu from "./menu.js"; // ✅ ubah ini, jangan pakai { menuText }
+import menu from "./menu.js"; // sesuai export default
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -28,6 +28,7 @@ async function startBot() {
     auth: state,
   });
 
+  // === Pairing Code ===
   if (!conn.authState.creds.registered) {
     console.log(chalk.cyan("╭──────────────────────────────────────···"));
     console.log(`📨 ${chalk.redBright("Please type your WhatsApp number")}:`);
@@ -49,6 +50,7 @@ async function startBot() {
 
   conn.ev.on("creds.update", saveCreds);
 
+  // === Handle reconnect ===
   conn.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === "close") {
@@ -65,6 +67,7 @@ async function startBot() {
     }
   });
 
+  // === Handle pesan ===
   conn.ev.on("messages.upsert", async (chatUpdate) => {
     try {
       const msg = chatUpdate.messages[0];
@@ -80,15 +83,18 @@ async function startBot() {
       const args = text.trim().split(/ +/).slice(1);
 
       switch (command) {
-        case "menu":
-          await conn.sendMessage(jid, { text: menu(sender) }); // ✅ sesuai export default
+        case "menu": {
+          const menuCmd = menu.find(cmd => cmd.name === "menu");
+          if (menuCmd) await menuCmd.run({ chat: jid, pushName: sender }, { conn });
           break;
+        }
 
-        // === contoh fitur lainnya ===
+        // === FUN ===
         case "brat":
           await conn.sendMessage(jid, { text: "You are such a brat 💅" });
           break;
 
+        // === Default ===
         default:
           await conn.sendMessage(jid, { text: `Perintah *${command}* tidak dikenal.` });
           break;
@@ -99,6 +105,7 @@ async function startBot() {
   });
 }
 
+// === Auto Reload ===
 let file = fileURLToPath(import.meta.url);
 fs.watchFile(file, () => {
   fs.unwatchFile(file);
@@ -106,4 +113,4 @@ fs.watchFile(file, () => {
   import(`${file}?update=${Date.now()}`);
 });
 
-startBot();￼Enter
+startBot();
