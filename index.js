@@ -1,105 +1,154 @@
-import { default: makeWASocket, useMultiFileAuthState } from "@adiwajshing/baileys"
-import { create, all } from "mathjs"
-import fetch from "node-fetch"
+const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+const fs = require('fs');
+const { imageToWebp, writeExifImg, writeExifVid, getBuffer } = require('./library/webp');
+const ConfigBaileys = require('./library/utils.js');
 
-const math = create(all)
+module.exports = async (sock, m) => {
+    if(!m.command) return;
+    const cmd = m.command;
+    const arg = m.text || '';
 
-async function startBot() {
-  const { state, saveCreds } = await useMultiFileAuthState("auth_info")
-  const sock = makeWASocket({ auth: state })
-
-  // Menu definitions
-  const menus = {
-    owner: [".addprem <nomor>", ".delprem <nomor>", ".resetlimit", ".ban <nomor>", ".undban <nomor>", ".self", ".public", ".joingc <link>", ".out", ".setthumbnail <link>"],
-    fun: [".brat", ".bratvid", ".tebakkata", ".qc1", ".qc2", ".s", ".smeme", ".cekprofile <@user>"],
-    rpg: [".rvo", ".me", ".limit", ".ceklimit <@user>"],
-    downloader: [".yt <link>", ".tymp3 <link>", ".tt <link>", ".ttmp3 <link>", ".tovid", ".tomp3"],
-    group: [".tagall", ".hidetag", ".kick <reply>", ".add <nomor>", ".open", ".close", ".getpp <reply>", ".listonline", ".totalchat", ".afk", ".antilink", ".antilink off", ".linkgc"]
-  }
-
-  // Helper function: delay
-  const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
-
-  sock.ev.on("messages.upsert", async ({ messages }) => {
-    const msg = messages[0]
-    if (!msg.message) return
-
-    const text = msg.message.conversation || msg.message.extendedTextMessage?.text
-    if (!text) return
-
-    const sender = msg.key.remoteJid
-
-    // Owner commands
-    if (menus.owner.some(cmd => text.startsWith(cmd.split(" ")[0]))) {
-      await sock.sendMessage(sender, { text: "Owner command detected ✅" })
+    // ================= OWNER =================
+    switch(cmd) {
+        case 'addprem':
+            await sock.sendMessage(m.chat, { text: '✅ Nomor berhasil ditambahkan ke premium!' }, { quoted: m });
+            break;
+        case 'delprem':
+            await sock.sendMessage(m.chat, { text: '✅ Nomor berhasil dihapus dari premium!' }, { quoted: m });
+            break;
+        case 'resetlimit':
+            await sock.sendMessage(m.chat, { text: '✅ Limit user berhasil di-reset!' }, { quoted: m });
+            break;
+        case 'ban':
+            await sock.sendMessage(m.chat, { text: '⛔ User berhasil dibanned!' }, { quoted: m });
+            break;
+        case 'undban':
+            await sock.sendMessage(m.chat, { text: '✅ User berhasil di-unban!' }, { quoted: m });
+            break;
+        case 'self':
+            global.mode.public = false;
+            await sock.sendMessage(m.chat, { text: '🔒 Mode diubah ke Self!' }, { quoted: m });
+            break;
+        case 'public':
+            global.mode.public = true;
+            await sock.sendMessage(m.chat, { text: '🌐 Mode diubah ke Public!' }, { quoted: m });
+            break;
+        case 'joingc':
+            await sock.sendMessage(m.chat, { text: '✅ Berhasil join group!' }, { quoted: m });
+            break;
+        case 'out':
+            await sock.sendMessage(m.chat, { text: '🚪 Keluar dari group!' }, { quoted: m });
+            break;
+        case 'setthumbnail':
+            await sock.sendMessage(m.chat, { text: '🖼 Thumbnail berhasil diubah!' }, { quoted: m });
+            break;
     }
 
-    // Fun commands
-    if (menus.fun.some(cmd => text.startsWith(cmd.split(" ")[0]))) {
-      await sock.sendMessage(sender, { text: "Fun command detected ✅" })
+    // ================= FUN =================
+    switch(cmd) {
+        case 'brat':
+            const imgBuffer = await getBuffer('https://i.ibb.co/album/brat.png');
+            await sock.sendImageAsSticker(m.chat, imgBuffer, m, { packname: "Brat", author: "Bot" });
+            break;
+        case 'bratvid':
+            const vidBuffer = await getBuffer('https://i.ibb.co/album/brat.mp4');
+            await sock.sendVideoAsSticker(m.chat, vidBuffer, m, { packname: "BratVid", author: "Bot" });
+            break;
+        case 'tebakkata':
+            await sock.sendMessage(m.chat, { text: '🎲 Tebak kata dimulai!' }, { quoted: m });
+            break;
+        case 'qc1':
+            await sock.sendMessage(m.chat, { text: '📜 Quotes versi gelap' }, { quoted: m });
+            break;
+        case 'qc2':
+            await sock.sendMessage(m.chat, { text: '📃 Quotes versi terang' }, { quoted: m });
+            break;
+        case 's':
+            await sock.sendMessage(m.chat, { text: 'Fitur S dijalankan!' }, { quoted: m });
+            break;
+        case 'smeme':
+            await sock.sendMessage(m.chat, { text: 'Membuat meme...' }, { quoted: m });
+            break;
+        case 'cekprofile':
+            await sock.sendMessage(m.chat, { text: 'Profil user dicek!' }, { quoted: m });
+            break;
     }
 
-    // RPG commands
-    if (menus.rpg.some(cmd => text.startsWith(cmd.split(" ")[0]))) {
-      await sock.sendMessage(sender, { text: "RPG command detected ✅" })
+    // ================= RPG =================
+    switch(cmd) {
+        case 'rvo':
+            await sock.sendMessage(m.chat, { text: '🎮 RVO dijalankan!' }, { quoted: m });
+            break;
+        case 'me':
+            await sock.sendMessage(m.chat, { text: '🧑 Info user ditampilkan!' }, { quoted: m });
+            break;
+        case 'limit':
+            await sock.sendMessage(m.chat, { text: '🔢 Limit user saat ini: 10' }, { quoted: m });
+            break;
+        case 'ceklimit':
+            await sock.sendMessage(m.chat, { text: '🔍 Limit user dicek!' }, { quoted: m });
+            break;
     }
 
-    // Downloader commands
-    if (menus.downloader.some(cmd => text.startsWith(cmd.split(" ")[0]))) {
-      await sock.sendMessage(sender, { text: "Downloading... ⏱️ Tunggu wok..." })
-      await delay(3000)
-      await sock.sendMessage(sender, { text: "Download finished ✅" })
+    // ================= DOWNLOADER =================
+    switch(cmd) {
+        case 'yt':
+            await sock.sendMessage(m.chat, { text: `⏬ Downloading YouTube video: ${arg}` }, { quoted: m });
+            break;
+        case 'tymp3':
+            await sock.sendMessage(m.chat, { text: `⏬ Downloading TikTok MP3: ${arg}` }, { quoted: m });
+            break;
+        case 'tt':
+            await sock.sendMessage(m.chat, { text: `⏬ Downloading TikTok video: ${arg}` }, { quoted: m });
+            break;
+        case 'ttmp3':
+            await sock.sendMessage(m.chat, { text: `⏬ Downloading TikTok MP3: ${arg}` }, { quoted: m });
+            break;
+        case 'tovid':
+            await sock.sendMessage(m.chat, { text: '📹 Convert media ke video...' }, { quoted: m });
+            break;
+        case 'tomp3':
+            await sock.sendMessage(m.chat, { text: '🎵 Convert media ke MP3...' }, { quoted: m });
+            break;
     }
 
-    // Group commands
-    if (menus.group.some(cmd => text.startsWith(cmd.split(" ")[0]))) {
-      await sock.sendMessage(sender, { text: "Group command detected ✅" })
+    // ================= GROUP =================
+    switch(cmd) {
+        case 'tagall':
+            await sock.sendMessage(m.chat, { text: '📢 Mention semua member!' }, { quoted: m });
+            break;
+        case 'hidetag':
+            await sock.sendMessage(m.chat, { text: '🤫 Hidetag dijalankan!' }, { quoted: m });
+            break;
+        case 'kick':
+            await sock.sendMessage(m.chat, { text: '👢 User dikick!' }, { quoted: m });
+            break;
+        case 'add':
+            await sock.sendMessage(m.chat, { text: '➕ User ditambahkan ke group!' }, { quoted: m });
+            break;
+        case 'open':
+            await sock.sendMessage(m.chat, { text: '🔓 Group dibuka!' }, { quoted: m });
+            break;
+        case 'close':
+            await sock.sendMessage(m.chat, { text: '🔒 Group ditutup!' }, { quoted: m });
+            break;
+        case 'getpp':
+            await sock.sendMessage(m.chat, { text: '🖼 Mengambil profile picture...' }, { quoted: m });
+            break;
+        case 'listonline':
+            await sock.sendMessage(m.chat, { text: '👥 Menampilkan list online' }, { quoted: m });
+            break;
+        case 'totalchat':
+            await sock.sendMessage(m.chat, { text: '💬 Menampilkan total chat' }, { quoted: m });
+            break;
+        case 'afk':
+            await sock.sendMessage(m.chat, { text: '😴 Status AFK diaktifkan!' }, { quoted: m });
+            break;
+        case 'antilink':
+            await sock.sendMessage(m.chat, { text: '🚫 Antilink diaktifkan!' }, { quoted: m });
+            break;
+        case 'linkgc':
+            await sock.sendMessage(m.chat, { text: '🔗 Mengirim link group...' }, { quoted: m });
+            break;
     }
-
-    // Math feature
-    if (text.startsWith(".math")) {
-      const args = text.split(" ")
-      let level = args[1]?.toLowerCase() || ""
-      const levels = ["easy","normal","medium","hard","impossible1","impossible2"]
-      if (!levels.includes(level)) {
-        const mathMenu = `
-╭─「 Math Menu 」
-│ • easy
-│ • normal
-│ • medium
-│ • hard
-│ • impossible1
-│ • impossible2
-╰───────────`
-        await sock.sendMessage(sender, { text: mathMenu })
-        return
-      }
-
-      // Timer per level
-      const times = {
-        easy: 15000,
-        normal: 30000,
-        medium: 40000,
-        hard: 60000,
-        impossible1: 70000,
-        impossible2: 60000
-      }
-      const expr = "2+2" // contoh, nanti bisa generate random
-      await sock.sendMessage(sender, { text: `⏱️ Tunggu wok... Kamu punya ${times[level]/1000} detik untuk menjawab.` })
-      await delay(times[level])
-      await sock.sendMessage(sender, { text: `Yah salah, coba lagi ya❌` })
-    }
-
-    // Tebak Kata / Kuis
-    if (text.startsWith(".tebakkata") || text.startsWith(".qc1") || text.startsWith(".qc2")) {
-      await sock.sendMessage(sender, { text: "⏱️ Tunggu wok... Kamu punya 60 detik untuk menjawab." })
-      await delay(60000)
-      await sock.sendMessage(sender, { text: "Yah salah, coba lagi ya❌" })
-    }
-
-  })
-
-  sock.ev.on("creds.update", saveCreds)
-}
-
-startBot()
+};
