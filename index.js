@@ -1,92 +1,46 @@
+import {
+  makeWASocket,
+  useMultiFileAuthState
+} from "@whiskeysockets/baileys";
+import pino from "pino";
+import readline from "readline";
 import chalk from "chalk";
 
-export default async function handleMessage(conn, m, chatUpdate) {
-  try {
-    const body = (m.mtype === "conversation") ? m.message.conversation
-      : (m.mtype === "extendedTextMessage") ? m.message.extendedTextMessage.text
-      : "";
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+const question = (text) => new Promise((resolve) => rl.question(text, resolve));
 
-    const command = body.startsWith('.') ? body.slice(1).trim().split(/ +/).shift().toLowerCase() : '';
-    const text = body.slice(command.length + 2).trim();
+async function pairingCode() {
+  const { state, saveCreds } = await useMultiFileAuthState("./session");
+  const conn = makeWASocket({
+    logger: pino({ level: "silent" }),
+    printQRInTerminal: false,
+    browser: ["Linux", "Chrome", "20.0.00"],
+    auth: state,
+  });
 
-    switch (command) {
-      case 'menu':
-        const menu = `
-─Hai, ${m.pushName || 'user'}👋
+  if (!conn.authState.creds.registered) {
+    console.log(chalk.cyan("╭──────────────────────────────────────···"));
+    console.log(`📨 ${chalk.redBright("Please type your WhatsApp number")}:`);
+    console.log(chalk.cyan("├──────────────────────────────────────···"));
+    let phoneNumber = await question(`   ${chalk.cyan("- Number")}: `);
+    console.log(chalk.cyan("╰──────────────────────────────────────···"));
+    phoneNumber = phoneNumber.replace(/[^0-9]/g, "");
 
-╭──── 「 *👤USER INFO* 」
-│
-│└❑ Status : -
-│└❑ Limit : -
-│└❑ Level : -
-╰────────────────
-
-╭──「 *OWNER* 」
-│    • .addprem <nomor>
-│    • .delprem <nomor>
-│    • .resetlimit
-│    • .ban <nomor>
-│    • .undban <nomor>
-│    • .self
-│    • .public
-│    • .joingc <link>
-│    • .out
-│    • .setthumbnail <link>
-╰────────────────
-
-╭─「 *FUN* 」
-│    • .brat
-│    • .bratvid
-│    • .tebakkata
-│    • .qc1
-│    • .qc2
-│    • .s
-│    • .smeme
-│    • .cekprofile <@user>
-╰────────────────
-
-╭─「 *RPG* 」
-│    • .rvo ®
-│    • .me
-│    • .limit
-│    • .ceklimit <@user>
-╰────────────────
-
-╭─「 *DOWNLOADER* 」
-│    • .yt <link>
-│    • .tymp3 <link> 
-│    • .tt <link>
-│    • .ttmp3 <link>
-│    • .tovid
-│    • .tomp3
-╰────────────────
-
-╭─「 *GROUP* 」
-│    • .tagall ®
-│    • .hidetag ®
-│    • .kick <reply> ®
-│    • .add <nomor> ®
-│    • .open ®
-│    • .close ®
-│    • .getpp <reply>
-│    • .listonline 
-│    • .totalchat
-│    • .afk
-│    • .antilink ®
-│    • .antilink off ®
-│    • .linkgc ®
-╰────────────────
-® = Hanya admin yg bisa menggunakan fitur ini!
-        `.trim();
-
-        await conn.sendText(m.chat, menu, m);
-        break;
-
-      default:
-        // kalau bukan perintah menu, bisa diabaikan atau tambahkan logika lain
-        break;
-    }
-  } catch (e) {
-    console.error(chalk.red('[ERROR in message.js]'), e);
+    setTimeout(async () => {
+      let code = await conn.requestPairingCode(phoneNumber);
+      code = code?.match(/.{1,4}/g)?.join("-") || code;
+      console.log(chalk.cyan("╭──────────────────────────────────────···"));
+      console.log(` 💻 ${chalk.redBright("Your Pairing Code")}:`);
+      console.log(chalk.cyan("├──────────────────────────────────────···"));
+      console.log(`   ${chalk.cyan("- Code")}: ${code}`);
+      console.log(chalk.cyan("╰──────────────────────────────────────···"));
+    }, 3000);
   }
+
+  conn.ev.on("creds.update", saveCreds);
 }
+
+pairingCode();
