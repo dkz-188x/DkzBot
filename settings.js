@@ -1,15 +1,15 @@
-module.exports = {
-    global: {
-        mode: { public: true },           // true = public, false = self
-        ownerName: 'Dkz',                 // nama owner
-        ownerNumber: '6283119404224',        // nomor WA owner
-        premiumUsers: [],                  // bisa dikosongkan
-        userLimits: 20,                    // limit default user
-        botThumbnail: null                 // thumbnail default kosong, bisa diganti manual
-    },
-    botInfo: {
-        name: 'DkzBot',
-        packname: 'DkzBot Sticker',
-        author: 'Dkz'
-    }
+// SETTINGS CONFIG DKZ BOT
+
+export default {
+  owner: ["6283119404224"], // nomor kamu (gunakan format internasional tanpa +)
+  ownerName: "Dkz",
+  botName: "DkzBot",
+  packname: "DkzBot",
+  author: "Dkz",
+  sessionName: "session",
+  prefix: ".",
+  YouTube: "-",
+  waChannel: "https://whatsapp.com/channel/0029Va0EXAMPLE", // link channel WhatsApp kamu
+  thumbnail: "https://telegra.ph/file/f47b5b5f9f75d5e7f1dc3.jpg",
+  footer: "© 2025 DkzBot Multi Device",
 };
