@@ -1,7 +1,7 @@
 {
   "name": "DkzBot",
   "version": "1.0.0",
-  "description": "WhatsApp Bot menggunakan Baileys",
+  "description": "WhatsApp Bot dengan fitur owner, fun, RPG, downloader, dan grup",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -9,8 +9,9 @@
   "author": "Dkz",
   "license": "MIT",
   "dependencies": {
-    "@whiskeysockets/baileys": "^2.1.1",
+    "@whiskeysockets/baileys": "npm:@shennmine/baileys@2.1.1",
     "qrcode-terminal": "^0.12.0",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "fs-extra": "^11.1.1"
   }
 }
