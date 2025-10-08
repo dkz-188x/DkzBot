@@ -18,7 +18,6 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
 
     sock.ev.on('connection.update', update => {
         const { connection, qr, lastDisconnect } = update;
-        if (qr) require('qrcode-terminal').generate(qr, { small: true });
         if (connection === 'open') console.log('✅ Bot sudah login!');
         if (connection === 'close') {
             if ((lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut) {
@@ -36,6 +35,7 @@ rl.question('📨 Please type your WhatsApp number (contoh: 628xxxx): ', async (
     sock.ev.on('messages.upsert', async ({ messages }) => {
         const m = messages[0];
         if (!m.message || m.key.fromMe) return;
+
         const text = m.message.conversation || m.message.extendedTextMessage?.text || '';
         if (!text.startsWith('.')) return;
 
