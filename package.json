@@ -1,7 +1,7 @@
 {
 "name": "-DkzBot",
 "version": "1.0.0",
-"description": "Sdkz owner",
+"description": "Dkz owner",
 "main": "index.js",
 "scripts": {
 "start": "node index.js"
