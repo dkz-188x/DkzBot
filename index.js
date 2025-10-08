@@ -25,7 +25,7 @@ async function startBot() {
   // Pairing jika belum login
   if (!sock.authState.creds.registered) {
     const code = await sock.requestPairingCode(settings.global.ownerNumber);
-    console.log(`🔗 Kode Pairing: ${DKZZBOT1}`);
+    console.log(`🔗 Kode Pairing: ${code}`);
     console.log('👉 Buka WhatsApp > Perangkat Tertaut > Tautkan perangkat > Masukkan kode di atas.');
   }
 
