@@ -11,7 +11,7 @@ import readline from "readline";
 import { Boom } from "@hapi/boom";
 import { fileURLToPath } from "url";
 import path from "path";
-import { menuText } from "./menu.js";
+import menu from "./menu.js"; // ✅ ubah ini, jangan pakai { menuText }
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -28,7 +28,6 @@ async function startBot() {
     auth: state,
   });
 
-  // === Pairing Code ===
   if (!conn.authState.creds.registered) {
     console.log(chalk.cyan("╭──────────────────────────────────────···"));
     console.log(`📨 ${chalk.redBright("Please type your WhatsApp number")}:`);
@@ -48,10 +47,8 @@ async function startBot() {
     }, 3000);
   }
 
-  // === Simpan data login ===
   conn.ev.on("creds.update", saveCreds);
 
-  // === Jika koneksi putus ===
   conn.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === "close") {
@@ -68,7 +65,6 @@ async function startBot() {
     }
   });
 
-  // === Event pesan masuk ===
   conn.ev.on("messages.upsert", async (chatUpdate) => {
     try {
       const msg = chatUpdate.messages[0];
@@ -78,7 +74,6 @@ async function startBot() {
       const jid = msg.key.remoteJid;
       const text = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
 
-      // === Command Handling ===
       const prefix = ".";
       if (!text.startsWith(prefix)) return;
       const command = text.slice(1).trim().split(" ")[0].toLowerCase();
@@ -86,46 +81,12 @@ async function startBot() {
 
       switch (command) {
         case "menu":
-          await conn.sendMessage(jid, { text: menu(sender) });
+          await conn.sendMessage(jid, { text: menu(sender) }); // ✅ sesuai export default
           break;
 
-        // ===== OWNER =====
-        case "addprem":
-        case "delprem":
-        case "resetlimit":
-        case "ban":
-        case "unban":
-        case "self":
-        case "public":
-        case "joingc":
-        case "out":
-        case "setthumbnail":
-          await conn.sendMessage(jid, { text: `Fitur ${command} belum diaktifkan.` });
-          break;
-
-        // ===== FUN =====
+        // === contoh fitur lainnya ===
         case "brat":
           await conn.sendMessage(jid, { text: "You are such a brat 💅" });
-          break;
-
-        case "tebakkata":
-          await conn.sendMessage(jid, { text: "Fitur tebakkata dalam pengembangan." });
-          break;
-
-        // ===== RPG =====
-        case "limit":
-          await conn.sendMessage(jid, { text: "Limit kamu masih penuh ✨" });
-          break;
-
-        // ===== DOWNLOADER =====
-        case "yt":
-          if (!args[0]) return conn.sendMessage(jid, { text: "Masukkan link YouTube!" });
-          await conn.sendMessage(jid, { text: `📥 Sedang mendownload: ${args[0]}` });
-          break;
-
-        // ===== GROUP =====
-        case "tagall":
-          await conn.sendMessage(jid, { text: "Fitur hanya untuk admin grup!" });
           break;
 
         default:
@@ -138,7 +99,6 @@ async function startBot() {
   });
 }
 
-// === Auto reload index.js jika diubah ===
 let file = fileURLToPath(import.meta.url);
 fs.watchFile(file, () => {
   fs.unwatchFile(file);
@@ -146,4 +106,4 @@ fs.watchFile(file, () => {
   import(`${file}?update=${Date.now()}`);
 });
 
-startBot();
+startBot();￼Enter
